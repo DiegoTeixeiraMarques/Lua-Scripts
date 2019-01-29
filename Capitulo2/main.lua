@@ -171,6 +171,8 @@ local function gameLoop()
 		then
 			display.remove(thisAsteroid)
 			table.remove(asteroidsTable, i)
-
+		end
 	end
 end
+
+gameLoopTimer = timer.performWithDelay(500, gameLoop, 0)
