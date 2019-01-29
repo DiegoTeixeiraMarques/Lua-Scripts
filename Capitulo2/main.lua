@@ -38,7 +38,7 @@ local sheetOptions =
 		{ -- 5) laser
 			x = 98,
 			y = 265,
-			widht = 14,
+			width = 14,
 			height = 40
 		},
 	},
@@ -122,9 +122,41 @@ local function fireLaser()
 	newLaser.y = ship.y
 	newLaser:toBack()
 
-	transition.to(newLaser, {y=-40, time=500, 
-		onComplete = function() display.remove(newLaser) end
+	transition.to(newLaser, { y=-40, time=500, 
+		onComplete = 
+		function()
+			display.remove(newLaser) 
+		end
 	})
 end
 
 ship:addEventListener("tap", fireLaser)
+
+local function dragShip( event )
+	local ship = event.target
+	local phase = event.phase
+
+	if ("began" == phase) then
+		-- Set touch focus on the ship
+		display.currentStage:setFocus( ship )
+		-- Store initial offset position
+		ship.touchOffsetX = event.x - ship.x
+
+	elseif ("moved" == phase) then
+		-- Move the ship to the new touch position
+		ship.x = event.x - ship.touchOffsetX
+
+	elseif ("ended" == phase or "cancelled" == phase) then
+	-- Release touch focus on the ship
+	display.currentStage:setFocus(nil)
+	end
+
+	return true -- Prevents touch propagation to underlying objects
+end
+
+ship:addEventListener("touch", dragShip)
+
+local function gameLoop()
+	-- Create new asteroid
+	createAsteroid()
+end
