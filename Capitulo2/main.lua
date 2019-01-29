@@ -198,7 +198,7 @@ local function onCollision(event)
 		local obj1 = event.object1
 		local obj2 = event.object2
 
-		if ((obj1.myName == "laser" and boj2.myName == "asteroid") or 
+		if ((obj1.myName == "laser" and obj2.myName == "asteroid") or 
 			(obj1.myName == "asteroid" and obj2.myName == "laser"))
 		then
 			-- Remove both the laser and asteroid
@@ -213,7 +213,7 @@ local function onCollision(event)
 			end		
 
 			-- Increase score
-			sacore = score + 100
+			score = score + 100
 			scoreText.text = "Score: " .. score
 
 		elseif ((obj1.myName == "ship" and obj2.myName == "asteroid") or 
@@ -236,3 +236,5 @@ local function onCollision(event)
 		end
 	end
 end
+
+Runtime:addEventListener("collision", onCollision)
