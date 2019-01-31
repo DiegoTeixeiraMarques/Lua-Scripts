@@ -1,9 +1,16 @@
+
+local composer = require( "composer" )
+
+local scene = composer.newScene()
+
+-- -----------------------------------------------------------------------------------
+-- Code outside of the scene event functions below will only be executed ONCE unless
+-- the scene is removed entirely (not recycled) via "composer.removeScene()"
+-- -----------------------------------------------------------------------------------
+
 local physics = require( "physics" )
 physics.start()
 physics.setGravity( 0, 0 )
-
--- Seed the random number generator
-math.randomseed( os.time() )
 
 -- Configure image sheet
 local sheetOptions =
@@ -57,28 +64,9 @@ local ship
 local livesText
 local scoreText
 
--- Set up display groups
-local backGroup = display.newGroup() -- Display group for the background image
-local mainGroup = display.newGroup() -- Display group for the ship, asteroids, lasers, etc.
-local uiGroup = display.newGroup() -- Display group for UI objects like the score
-
--- Load the background
-local background = display.newImageRect(backGroup, "background.png", 800, 1400)
-background.x = display.contentCenterX
-background.y = display.contentCenterY
-
-ship = display.newImageRect(mainGroup, objectSheet, 4, 98, 79)
-ship.x = display.contentCenterX
-ship.y = display.contentHeight - 100
-physics.addBody( ship, { radius=30, isSensor=true} )
-ship.myName = "ship"
-
--- Display lives and score
-livesText = display.newText( uiGroup, "Lives: " .. lives, 200, 80, native.systemFont, 36)
-scoreText = display.newText( uiGroup, "Score: " .. score, 400, 80, native.systemFont, 36)
-
--- Hide the status bar
-display.setStatusBar( display.HiddenStatusBar )
+local backGroup
+local mainGroup
+local uiGroup
 
 local function updateText()
 	livesText.text = "Lives: " .. lives
@@ -130,8 +118,6 @@ local function fireLaser()
 	})
 end
 
-ship:addEventListener("tap", fireLaser)
-
 local function dragShip( event )
 	local ship = event.target
 	local phase = event.phase
@@ -154,8 +140,6 @@ local function dragShip( event )
 	return true -- Prevents touch propagation to underlying objects
 end
 
-ship:addEventListener("touch", dragShip)
-
 local function gameLoop()
 	-- Create new asteroid
 	createAsteroid()
@@ -175,7 +159,6 @@ local function gameLoop()
 	end
 end
 
-gameLoopTimer = timer.performWithDelay(500, gameLoop, 0)
 
 local function restoreShip()
 
@@ -237,4 +220,101 @@ local function onCollision(event)
 	end
 end
 
-Runtime:addEventListener("collision", onCollision)
+
+
+-- -----------------------------------------------------------------------------------
+-- Scene event functions
+-- -----------------------------------------------------------------------------------
+
+-- create()
+function scene:create( event )
+
+	local sceneGroup = self.view
+	-- Code here runs when the scene is first created but has not yet appeared on screen
+
+	physics.pause() -- Temporarily pause the physics engine
+
+	-- Set up display groups
+	backGroup = display.newGroup()
+	sceneGroup:insert(backGroup)
+
+	mainGroup = display.newGroup()
+	sceneGroup:insert( mainGroup )
+
+	uiGroup = display.newGroup()
+	sceneGroup:insert(uiGroup)
+
+	-- Load the background
+	local background = display.newImageRect(backGroup, "background.png", 800, 1400)
+	background.x = display.contentCenterX
+	background.y = display.contentCenterY
+
+	ship = display.newImageRect(mainGroup, objectSheet, 4, 98, 79)
+	ship.x = display.contentCenterX
+	ship.y = display.contentHeight - 100
+	physics.addBody(ship, {radius=30, isSensor=true})
+	ship.myName = "ship"	
+
+	-- Display lives and score
+    livesText = display.newText( uiGroup, "Lives: " .. lives, 200, 80, native.systemFont, 36 )
+    scoreText = display.newText( uiGroup, "Score: " .. score, 400, 80, native.systemFont, 36 )
+
+    ship:addEventListener( "tap", fireLaser )
+    ship:addEventListener( "touch", dragShip )
+end
+
+
+-- show()
+function scene:show( event )
+
+	local sceneGroup = self.view
+	local phase = event.phase
+
+	if ( phase == "will" ) then
+		-- Code here runs when the scene is still off screen (but is about to come on screen)
+
+	elseif ( phase == "did" ) then
+		-- Code here runs when the scene is entirely on screen
+		physics.start()
+        Runtime:addEventListener( "collision", onCollision )
+        gameLoopTimer = timer.performWithDelay( 500, gameLoop, 0 )
+
+	end
+end
+
+
+-- hide()
+function scene:hide( event )
+
+	local sceneGroup = self.view
+	local phase = event.phase
+
+	if ( phase == "will" ) then
+		-- Code here runs when the scene is on screen (but is about to go off screen)
+
+	elseif ( phase == "did" ) then
+		-- Code here runs immediately after the scene goes entirely off screen
+
+	end
+end
+
+
+-- destroy()
+function scene:destroy( event )
+
+	local sceneGroup = self.view
+	-- Code here runs prior to the removal of scene's view
+
+end
+
+
+-- -----------------------------------------------------------------------------------
+-- Scene event function listeners
+-- -----------------------------------------------------------------------------------
+scene:addEventListener( "create", scene )
+scene:addEventListener( "show", scene )
+scene:addEventListener( "hide", scene )
+scene:addEventListener( "destroy", scene )
+-- -----------------------------------------------------------------------------------
+
+return scene
