@@ -176,6 +176,8 @@ local function restoreShip()
 end
 
 local function endGame()
+	composer.setVariable( "finalScore", score )
+	composer.getScene( "highscores", { time=800, effect="crpssFade" } )
     composer.gotoScene( "menu", { time=800, effect="crossFade" } )
 end
 
