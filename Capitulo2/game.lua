@@ -70,6 +70,7 @@ local uiGroup
 
 local explosionSound
 local fireSound
+local musicTrack
 
 local function updateText()
 	livesText.text = "Lives: " .. lives
@@ -284,7 +285,8 @@ function scene:create( event )
     ship:addEventListener( "touch", dragShip )
 
 	explosionSound = audio.loadSound( "audio/explosion.wav" )
-    fireSound = audio.loadSound( "audio/fire.wav" )
+	fireSound = audio.loadSound( "audio/fire.wav" )
+	musicTrack = audio.loadStream( "audio/80s-Space-Game_Looping.wav")
 
 end
 
@@ -302,7 +304,9 @@ function scene:show( event )
 		-- Code here runs when the scene is entirely on screen
 		physics.start()
         Runtime:addEventListener( "collision", onCollision )
-        gameLoopTimer = timer.performWithDelay( 500, gameLoop, 0 )
+		gameLoopTimer = timer.performWithDelay( 500, gameLoop, 0 )
+		-- Start the music!
+        audio.play( musicTrack, { channel=1, loops=-1 } )											-- loops = -1 para repetir a música indefinidamente
 
 	end
 end
@@ -321,7 +325,9 @@ function scene:hide( event )
 	elseif ( phase == "did" ) then
 		-- Code here runs immediately after the scene goes entirely off screen
 		Runtime:removeEventListener( "collision", onCollision )
-        physics.pause()
+		physics.pause()
+		-- Stop the music!
+		audio.stop( 1 )
         composer.removeScene("game")
 
 	end
@@ -333,7 +339,10 @@ function scene:destroy( event )
 
 	local sceneGroup = self.view
 	-- Code here runs prior to the removal of scene's view
-
+	-- Dispose audio!
+    audio.dispose( explosionSound )
+    audio.dispose( fireSound )
+    audio.dispose( musicTrack )
 end
 
 
